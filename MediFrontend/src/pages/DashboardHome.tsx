@@ -1,5 +1,5 @@
 // src/pages/dashboard/DashboardHome.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Battery, Calendar, FileText, Settings, BookOpen, Zap } from 'lucide-react';
 import {
@@ -12,8 +12,35 @@ import {
 } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { api } from '../services/api';
+
+const SCS_ID = '686fe97a7679d49d194e4aa0';
+const DBS_ID = '68702ada7679d49d194e4aad';
 
 export default function DashboardHome() {
+  const [therapyId, setTherapyId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/patients/me')
+      .then(res => setTherapyId(res.data.therapy_id))
+      .catch(() => setTherapyId(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  let deviceType = 'Spinal Cord Stimulator';
+  let deviceModel = 'Medtronic Intellis™';
+  let therapyDescription = 'Comprehensive information about spinal cord stimulation therapy, how it works, and what to expect.';
+  if (therapyId === DBS_ID) {
+    deviceType = 'Deep Brain Stimulator';
+    deviceModel = 'Medtronic Percept™ PC';
+    therapyDescription = 'Comprehensive information about deep brain stimulation therapy, how it works, and what to expect.';
+  }
+
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Summary Grid */}
@@ -24,8 +51,8 @@ export default function DashboardHome() {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Spinal Cord Stimulator</div>
-            <p className="text-xs text-muted-foreground">Medtronic Intellis™</p>
+            <div className="text-2xl font-bold">{deviceType}</div>
+            <p className="text-xs text-muted-foreground">{deviceModel}</p>
           </CardContent>
         </Card>
         <Card>
@@ -107,7 +134,7 @@ export default function DashboardHome() {
                 <CardDescription>About your therapy</CardDescription>
               </CardHeader>
               <CardContent>
-                <p>Comprehensive information about spinal cord stimulation therapy, how it works, and what to expect.</p>
+                <p>{therapyDescription}</p>
               </CardContent>
               <CardFooter>
                 <Link to="/treatment-information">

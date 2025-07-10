@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Brain, Zap, Target, TrendingUp, Calendar, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -9,60 +9,31 @@ import {
   CardContent,
 } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { api } from '../services/api';
+
+const SCS_ID = '686fe97a7679d49d194e4aa0';
+const DBS_ID = '68702ada7679d49d194e4aad';
 
 export default function TreatmentInformation() {
-  return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link to="/dashboard">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold">Treatment Information</h1>
-          <p className="text-muted-foreground">Understanding your spinal cord stimulation therapy</p>
-        </div>
-      </div>
+  const [therapyId, setTherapyId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-      {/* Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            What is Spinal Cord Stimulation?
-          </CardTitle>
-          <CardDescription>Understanding your therapy</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm leading-relaxed">
-              Spinal cord stimulation (SCS) is an advanced pain management therapy that uses mild electrical pulses 
-              to interrupt pain signals before they reach your brain. Your implanted device delivers these carefully 
-              controlled signals to the dorsal columns of your spinal cord, helping to reduce chronic pain.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">How It Works</h4>
-                <p className="text-sm text-muted-foreground">
-                  Electrical impulses stimulate nerve fibers in the spinal cord, blocking pain signals 
-                  from reaching the brain and replacing them with a mild tingling sensation.
-                </p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">Your Device</h4>
-                <p className="text-sm text-muted-foreground">
-                  Medtronic Intellis™ Spinal Cord Stimulator with advanced programming capabilities 
-                  for personalized pain relief.
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  useEffect(() => {
+    api.get('/patients/me')
+      .then(res => {
+        setTherapyId(res.data.therapy_id);
+      })
+      .catch(() => setTherapyId(null))
+      .finally(() => setLoading(false));
+  }, []);
 
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  // Helper: SCS shared content
+  const SCSContent = (
+    <>
       {/* Treatment Goals */}
       <Card>
         <CardHeader>
@@ -270,7 +241,7 @@ export default function TreatmentInformation() {
                 <h4 className="font-medium text-orange-600">Discuss with Doctor</h4>
                 <ul className="mt-2 space-y-1 text-muted-foreground">
                   <li>• High-impact sports</li>
-                                     <li>• Heavy lifting (&gt;25 lbs)</li>
+                  <li>• Heavy lifting (&gt;25 lbs)</li>
                   <li>• Medical procedures (MRI, surgery)</li>
                   <li>• Extreme physical activities</li>
                 </ul>
@@ -279,6 +250,112 @@ export default function TreatmentInformation() {
           </CardContent>
         </Card>
       </div>
+    </>
+  );
+
+  if (therapyId === DBS_ID) {
+    // DBS header/overview, then SCSContent
+    return (
+      <div className="flex flex-col gap-6 p-6">
+        <div className="flex items-center gap-4">
+          <Link to="/dashboard">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">Treatment Information</h1>
+            <p className="text-muted-foreground">Understanding your deep brain stimulation therapy</p>
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              What is Deep Brain Stimulation?
+            </CardTitle>
+            <CardDescription>Understanding your therapy</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm leading-relaxed">
+                Deep brain stimulation (DBS) is a neurosurgical procedure that uses electrical impulses to regulate abnormal brain activity. It is commonly used to treat movement disorders such as Parkinson's disease, essential tremor, and dystonia.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">How It Works</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Electrodes are implanted in specific areas of the brain and connected to a pulse generator (neurostimulator) placed under the skin in the chest. The device sends electrical signals to targeted brain regions to help control symptoms.
+                  </p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Your Device</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Medtronic Percept™ PC Neurostimulator or similar, with advanced programming for personalized symptom management.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {SCSContent}
+      </div>
+    );
+  }
+
+  // Default: SCS header/overview, then SCSContent
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link to="/dashboard">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold">Treatment Information</h1>
+          <p className="text-muted-foreground">Understanding your spinal cord stimulation therapy</p>
+        </div>
+      </div>
+      {/* Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            What is Spinal Cord Stimulation?
+          </CardTitle>
+          <CardDescription>Understanding your therapy</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm leading-relaxed">
+              Spinal cord stimulation (SCS) is an advanced pain management therapy that uses mild electrical pulses 
+              to interrupt pain signals before they reach your brain. Your implanted device delivers these carefully 
+              controlled signals to the dorsal columns of your spinal cord, helping to reduce chronic pain.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-2">How It Works</h4>
+                <p className="text-sm text-muted-foreground">
+                  Electrical impulses stimulate nerve fibers in the spinal cord, blocking pain signals 
+                  from reaching the brain and replacing them with a mild tingling sensation.
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-2">Your Device</h4>
+                <p className="text-sm text-muted-foreground">
+                  Medtronic Intellis™ Spinal Cord Stimulator with advanced programming capabilities 
+                  for personalized pain relief.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      {SCSContent}
     </div>
   );
-} 
+}
