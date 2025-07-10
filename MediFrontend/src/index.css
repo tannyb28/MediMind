@@ -1,0 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+:root {
+  --primary: #1e40af;
+  --secondary: #f3f4f6;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+}
+@import "tailwindcss";
