@@ -1,21 +1,31 @@
 # app/routes/auth.py
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime
+from app.schemas import Patient
+from app.crud import create_patient, get_patient
+from app.dependencies import fake_tokens
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["auth"])
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
+@router.post("/token")
+async def login(form: OAuth2PasswordRequestForm = Depends()):
+    # Find the token string that maps to this username
+    token = next((t for t, u in fake_tokens.items() if u == form.username), None)
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-@router.post("/login")
-async def login(req: LoginRequest):
-    # Dummy Check
-    if req.email and req.password:
-        return {
-            "access_token": "dummy_token",
-            "token_type": "bearer",
-            "user_id": "user123"
-        }
-    raise HTTPException(status_code=400, detail="Invalid credentials")
+    # Ensure patient record exists (same as before)…
+    existing = await get_patient(form.username)
+    if not existing:
+        p = Patient(
+            username=form.username,
+            full_name=form.username.title(),
+            device_id="",
+            disease_state="",
+            last_checkin=datetime.utcnow(),
+        )
+        await create_patient(p)
+
+    return {"access_token": token, "token_type": "bearer"}
