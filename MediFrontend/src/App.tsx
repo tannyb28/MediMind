@@ -7,7 +7,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Devices from './pages/Devices';
 import DashboardLayout from './layout/DashboardLayout';
-import DashboardHome from './pages/DashboardHome';
+import DashboardHome from './pages/dashboard/DashboardHome';
+import DeviceCare from './pages/dashboard/DeviceCare';
 import { Placeholder } from './pages/Placeholder';
 
 const queryClient = new QueryClient();
@@ -38,7 +39,7 @@ export default function App() {
               element={<PrivateRoute><DashboardLayout /></PrivateRoute>}
             >
               <Route index element={<DashboardHome />} />
-              <Route path="device-care" element={<Placeholder title="Device Care" />} />
+              <Route path="device-care" element={<DeviceCare />} />
               <Route path="recharging" element={<Placeholder title="Recharging Guide" />} />
               <Route path="treatment" element={<Placeholder title="Treatment Info" />} />
               <Route path="replacement" element={<Placeholder title="Replacement Timeline" />} />

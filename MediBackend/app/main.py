@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import auth, devices, therapies, patients
+from app.routes import auth, devices, therapies, patients, ai_pages
 from app.database import db
 from datetime import datetime
 
@@ -83,6 +83,7 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(therapies.router)
 app.include_router(patients.router)
+app.include_router(ai_pages.router)
 
 @app.get("/")
 def root():
