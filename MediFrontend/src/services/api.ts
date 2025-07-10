@@ -5,8 +5,8 @@ export const api = axios.create({
 });
 
 // attach bearer token automatically
-api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem("token");
-  if (token) cfg.headers!["Authorization"] = `Bearer ${token}`;
-  return cfg;
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers!['Authorization'] = `Bearer ${token}`;
+  return config;
 });

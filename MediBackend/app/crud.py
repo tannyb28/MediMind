@@ -9,8 +9,12 @@ def stringify_id(doc: dict) -> dict:
   return doc
 
 async def get_all_devices():
-  cursor = db.devices.find()
-  return [DeviceInfo(**stringify_id(device)) async for device in cursor]
+  cursor = db.devices.find({})
+  devices = []
+  async for raw in cursor:
+      raw["_id"] = str(raw["_id"])
+      devices.append(DeviceInfo(**raw))
+  return devices
 
 async def get_device(device_id: str):
   device = await db.devices.find_one({"_id": ObjectId(device_id)})
@@ -23,8 +27,12 @@ async def create_device(device: DeviceInfo):
 
 # same pattern for therapies
 async def get_all_therapies():
-  cursor = db.therapies.find()
-  return [TherapyInfo(**stringify_id(therapy)) async for therapy in cursor]
+  cursor = db.therapies.find({})
+  therapies = []
+  async for raw in cursor:
+      raw["_id"] = str(raw["_id"])
+      therapies.append(TherapyInfo(**raw))
+  return therapies
 
 async def get_therapy(therapy_id: str):
   therapy = await db.therapies.find_one({"_id": ObjectId(therapy_id)})
@@ -36,9 +44,20 @@ async def create_therapy(therapy: TherapyInfo):
   return therapy
 
 # same pattern for patients
-async def get_patient(username: str) -> Patient | None:
-  patient = await db.patients.find_one({"username": username})
-  return Patient(**stringify_id(patient)) if patient else None
+async def get_patient(email: str) -> Patient | None:
+  raw = await db.patients.find_one({"email": email})
+  if not raw:
+    return None
+
+  # Convert all ObjectId fields to strings
+  patient_data = {
+    **raw,
+    "_id": str(raw["_id"]),
+    "device_id": str(raw["device_id"]),
+    "therapy_id": str(raw["therapy_id"]),
+  }
+
+  return Patient(**patient_data)
 
 async def get_patient_by_id(patient_id: str) -> Patient | None:
   patient = await db.patients.find_one({"_id": ObjectId(patient_id)})
