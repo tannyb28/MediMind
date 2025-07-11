@@ -51,14 +51,14 @@ export default function DeviceCare() {
   }, [patient]);
 
   if (patientLoading || loading) {
-    return <p>Loading…</p>;
+    return <div>Loading…</div>;
   }
   if (error || !device) {
-    return <p className="text-red-500">Error: {error || 'No device data'}</p>;
+    return <div className="text-red-500">Error: {error || 'No device data'}</div>;
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link to="/dashboard">
