@@ -27,6 +27,8 @@ class DeviceInfo(BaseModel):
   id: Optional[str] = Field(None, alias="_id")
   slug: str
   name: str
+  model: str
+  type: str
   device_care: List[DeviceCareSection]
   recharging_guide: RechargingGuide
   created_at: Optional[datetime]

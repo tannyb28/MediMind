@@ -1,3 +1,4 @@
+// src/pages/dashboard/TreatmentInformation.tsx
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Brain, Zap, Target, TrendingUp, Calendar, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -11,27 +12,64 @@ import {
 import { Button } from '../components/ui/button';
 import { api } from '../services/api';
 
+interface Patient {
+  therapy_id: string;
+}
+
+interface Expectation {
+  phase: string;
+  description: string;
+}
+
+interface TherapyInfo {
+  _id: string;
+  device_slug: string;
+  name: string;
+  overview: string;
+  how_it_works: string[];
+  benefits: string[];
+  limitations: string[];
+  expectations: Expectation[];
+}
+
 const SCS_ID = '686fe97a7679d49d194e4aa0';
 const DBS_ID = '68702ada7679d49d194e4aad';
 
 export default function TreatmentInformation() {
   const [therapyId, setTherapyId] = useState<string | null>(null);
+  const [therapy, setTherapy] = useState<TherapyInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/patients/me')
+    api.get<Patient>('/patients/me')
       .then(res => {
-        setTherapyId(res.data.therapy_id);
+        const id = res.data.therapy_id;
+        setTherapyId(id);
+        return api.get<TherapyInfo>(`/therapies/${id}`);
       })
-      .catch(() => setTherapyId(null))
+      .then(res => setTherapy(res.data))
+      .catch(err => setError(err.message || 'Failed to load therapy data'))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return <div className="p-6">Loading...</div>;
   }
+  if (error) {
+    return <div className="p-6 text-red-500">Error: {error}</div>;
+  }
+  if (!therapyId || !therapy) {
+    return <div className="p-6">Therapy information not found.</div>;
+  }
 
-  // Helper: SCS shared content
+  const isDBS = therapyId === DBS_ID;
+  const title = isDBS ? 'Deep Brain Stimulation' : 'Spinal Cord Stimulation';
+  const subtitle = isDBS
+    ? 'Understanding your deep brain stimulation therapy'
+    : 'Understanding your spinal cord stimulation therapy';
+
+  // static shared content
   const SCSContent = (
     <>
       {/* Treatment Goals */}
@@ -77,7 +115,7 @@ export default function TreatmentInformation() {
             <Zap className="h-5 w-5" />
             How Your Device Works
           </CardTitle>
-          <CardDescription>Technical details about your SCS system</CardDescription>
+          <CardDescription>Technical details about your system</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -130,74 +168,13 @@ export default function TreatmentInformation() {
         </CardContent>
       </Card>
 
-      {/* Treatment Timeline */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Treatment Timeline & Follow-up
-          </CardTitle>
-          <CardDescription>Your ongoing care schedule</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <h4 className="font-medium mb-3">Recent Milestones</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <div className="text-sm">
-                      <span className="font-medium">Device Implantation</span>
-                      <p className="text-muted-foreground">January 15, 2024</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <div className="text-sm">
-                      <span className="font-medium">Initial Programming</span>
-                      <p className="text-muted-foreground">February 1, 2024</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <div className="text-sm">
-                      <span className="font-medium">3-Month Follow-up</span>
-                      <p className="text-muted-foreground">April 15, 2024</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-medium mb-3">Upcoming Appointments</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <div className="text-sm">
-                      <span className="font-medium">Programming Adjustment</span>
-                      <p className="text-muted-foreground">June 28, 2025</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                    <div className="text-sm">
-                      <span className="font-medium">Annual Check-up</span>
-                      <p className="text-muted-foreground">January 15, 2026</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* What to Expect */}
+      {/* What to Expect & Activity Guidelines */}
       <div className="grid gap-4 md:grid-cols-2">
+        {/* What to Expect */}
         <Card>
           <CardHeader>
             <CardTitle>What to Expect</CardTitle>
-            <CardDescription>Normal experiences with SCS therapy</CardDescription>
+            <CardDescription>Normal experiences with your therapy</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 text-sm">
@@ -205,7 +182,7 @@ export default function TreatmentInformation() {
                 <h4 className="font-medium text-green-600">Normal Sensations</h4>
                 <ul className="mt-2 space-y-1 text-muted-foreground">
                   <li>• Mild tingling or buzzing sensation</li>
-                  <li>• Gradual pain relief over time</li>
+                  <li>• Gradual symptom relief over time</li>
                   <li>• Different sensations with different programs</li>
                   <li>• Ability to adjust intensity as needed</li>
                 </ul>
@@ -213,18 +190,18 @@ export default function TreatmentInformation() {
               <div>
                 <h4 className="font-medium text-blue-600">Adjustment Period</h4>
                 <p className="text-muted-foreground mt-1">
-                  It may take several weeks to months to find optimal settings. 
-                  Your doctor will work with you to fine-tune your therapy.
+                  It may take several weeks to months to find your optimal settings. Your care team will fine-tune your therapy.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Activity Guidelines */}
         <Card>
           <CardHeader>
             <CardTitle>Activity Guidelines</CardTitle>
-            <CardDescription>Living with your SCS device</CardDescription>
+            <CardDescription>Living with your device</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 text-sm">
@@ -234,7 +211,7 @@ export default function TreatmentInformation() {
                   <li>• Walking, swimming, light exercise</li>
                   <li>• Normal daily activities</li>
                   <li>• Most travel (with precautions)</li>
-                  <li>• Work activities (non-physical)</li>
+                  <li>• Non-strenuous work</li>
                 </ul>
               </div>
               <div>
@@ -242,8 +219,8 @@ export default function TreatmentInformation() {
                 <ul className="mt-2 space-y-1 text-muted-foreground">
                   <li>• High-impact sports</li>
                   <li>• Heavy lifting (&gt;25 lbs)</li>
-                  <li>• Medical procedures (MRI, surgery)</li>
-                  <li>• Extreme physical activities</li>
+                  <li>• Certain medical procedures (e.g., MRI)</li>
+                  <li>• Extreme physical exertion</li>
                 </ul>
               </div>
             </div>
@@ -253,10 +230,11 @@ export default function TreatmentInformation() {
     </>
   );
 
-  if (therapyId === DBS_ID) {
-    // DBS header/overview, then SCSContent
+  // Render for DBS vs SCS
+  if (isDBS) {
     return (
       <div className="flex flex-col gap-6 p-6">
+        {/* Header */}
         <div className="flex items-center gap-4">
           <Link to="/dashboard">
             <Button variant="outline" size="sm">
@@ -266,45 +244,49 @@ export default function TreatmentInformation() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold">Treatment Information</h1>
-            <p className="text-muted-foreground">Understanding your deep brain stimulation therapy</p>
+            <p className="text-muted-foreground">{subtitle}</p>
           </div>
         </div>
+
+        {/* Dynamic Overview & Procedure */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5" />
-              What is Deep Brain Stimulation?
+              What is {title}?
             </CardTitle>
             <CardDescription>Understanding your therapy</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm leading-relaxed">
-                Deep brain stimulation (DBS) is a neurosurgical procedure that uses electrical impulses to regulate abnormal brain activity. It is commonly used to treat movement disorders such as Parkinson's disease, essential tremor, and dystonia.
-              </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">How It Works</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Electrodes are implanted in specific areas of the brain and connected to a pulse generator (neurostimulator) placed under the skin in the chest. The device sends electrical signals to targeted brain regions to help control symptoms.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">Your Device</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Medtronic Percept™ PC Neurostimulator or similar, with advanced programming for personalized symptom management.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm leading-relaxed">{therapy.overview}</p>
           </CardContent>
         </Card>
+
+        {/* How It Works */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              How It Works
+            </CardTitle>
+            <CardDescription>Step-by-step mechanism</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc pl-5 space-y-2">
+              {therapy.how_it_works.map((step, i) => (
+                <li key={i} className="text-sm text-muted-foreground">{step}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Shared static content */}
         {SCSContent}
       </div>
     );
   }
 
-  // Default: SCS header/overview, then SCSContent
+  // Default SCS
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
@@ -317,44 +299,43 @@ export default function TreatmentInformation() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold">Treatment Information</h1>
-          <p className="text-muted-foreground">Understanding your spinal cord stimulation therapy</p>
+          <p className="text-muted-foreground">{subtitle}</p>
         </div>
       </div>
-      {/* Overview */}
+
+      {/* Dynamic Overview & Procedure for SCS */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
-            What is Spinal Cord Stimulation?
+            What is {title}?
           </CardTitle>
           <CardDescription>Understanding your therapy</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm leading-relaxed">
-              Spinal cord stimulation (SCS) is an advanced pain management therapy that uses mild electrical pulses 
-              to interrupt pain signals before they reach your brain. Your implanted device delivers these carefully 
-              controlled signals to the dorsal columns of your spinal cord, helping to reduce chronic pain.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">How It Works</h4>
-                <p className="text-sm text-muted-foreground">
-                  Electrical impulses stimulate nerve fibers in the spinal cord, blocking pain signals 
-                  from reaching the brain and replacing them with a mild tingling sensation.
-                </p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">Your Device</h4>
-                <p className="text-sm text-muted-foreground">
-                  Medtronic Intellis™ Spinal Cord Stimulator with advanced programming capabilities 
-                  for personalized pain relief.
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="text-sm leading-relaxed">{therapy.overview}</p>
         </CardContent>
       </Card>
+
+      {/* How It Works */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            How It Works
+          </CardTitle>
+          <CardDescription>Step-by-step mechanism</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="list-disc pl-5 space-y-2">
+            {therapy.how_it_works.map((step, i) => (
+              <li key={i} className="text-sm text-muted-foreground">{step}</li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Shared static content */}
       {SCSContent}
     </div>
   );
