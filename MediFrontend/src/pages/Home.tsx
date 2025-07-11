@@ -82,7 +82,7 @@ export default function Home() {
                   </Button>
                 </Link>
               </div>
-            </nav>
+        </nav>
 
             {/* Mobile Menu Button */}
             <button
@@ -196,13 +196,13 @@ export default function Home() {
               <div className="flex items-center justify-center">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-2xl blur-3xl"></div>
-                  <img
-                    src="/hero-tech-brain.png"
-                    alt="Medical Device Dashboard"
+                <img
+                  src="/hero-tech-brain.png"
+                  alt="Medical Device Dashboard"
                     className="relative rounded-2xl object-cover shadow-2xl border border-gray-200/50"
                     width={600}
                     height={450}
-                  />
+                />
                 </div>
               </div>
             </div>
@@ -215,10 +215,10 @@ export default function Home() {
             <div className="text-center space-y-4 mb-16">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
                 Everything You Need to Know
-              </h2>
+                </h2>
               <p className="max-w-3xl mx-auto text-lg text-gray-600">
                 Comprehensive device management with detailed insights, maintenance schedules, and personalized care instructions.
-              </p>
+                </p>
             </div>
             
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">

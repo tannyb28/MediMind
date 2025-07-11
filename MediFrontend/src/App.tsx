@@ -11,6 +11,7 @@ import DashboardHome from './pages/DashboardHome';
 import DeviceCare from './pages/DeviceCare';
 import RechargingGuide from './pages/RechargingGuide';
 import TreatmentInformation from './pages/TreatmentInformation';
+import Chatbot from './pages/Chatbot';
 import { Placeholder } from './pages/Placeholder';
 
 const queryClient = new QueryClient();
@@ -49,13 +50,18 @@ export default function App() {
               element={<PrivateRoute><TreatmentInformation /></PrivateRoute>}
             />
             <Route
+              path="/chatbot"
+              element={<PrivateRoute><Chatbot /></PrivateRoute>}
+            />
+            <Route
               path="/dashboard"
               element={<PrivateRoute><DashboardLayout /></PrivateRoute>}
             >
               <Route index element={<DashboardHome />} />
-              <Route path="device-care" element={<Placeholder title="Device Care" />} />
-              <Route path="recharging" element={<Placeholder title="Recharging Guide" />} />
-              <Route path="treatment" element={<Placeholder title="Treatment Info" />} />
+              <Route path="device-care" element={<DeviceCare />} />
+              <Route path="recharging" element={<RechargingGuide />} />
+              <Route path="treatment" element={<TreatmentInformation />} />
+              <Route path="chatbot" element={<Chatbot />} />
               <Route path="replacement" element={<Placeholder title="Replacement Timeline" />} />
               <Route path="faq" element={<Placeholder title="FAQ" />} />
               <Route path="resources" element={<Placeholder title="Resources" />} />

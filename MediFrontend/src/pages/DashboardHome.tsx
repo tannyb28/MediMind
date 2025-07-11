@@ -8,6 +8,8 @@ import {
   Settings,
   BookOpen,
   Zap as ZapIcon,
+  Bell,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Card,
@@ -76,67 +78,115 @@ export default function DashboardHome() {
   }, []);
 
   if (loading) {
-    return <div className="p-6">Loading…</div>;
+    return <div>Loading…</div>;
   }
   if (error) {
-    return <div className="p-6 text-red-500">Error: {error}</div>;
+    return <div className="text-red-500">Error: {error}</div>;
   }
   if (!patient || !device || !therapy) {
-    return <div className="p-6">No dashboard data available.</div>;
+    return <div>No dashboard data available.</div>;
   }
 
   // Calculate device age in years, one decimal
   const implantDate = new Date(patient.implant_date);
   const ageYears = (Date.now() - implantDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
   const ageRounded = ageYears.toFixed(1);
+  
+  // Provide fallbacks for missing data
+  const deviceType = device.type || "Medical Device";
+  const deviceModel = device.model || "Model Unknown";
+  const batteryLevel = "85%"; // TODO: Get from device data when available
+  const nextCheckup = "June 28"; // TODO: Get from patient/therapy data when available
+  const checkupTimeframe = "In 3 weeks"; // TODO: Calculate from actual date
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
+      {/* Important Alerts */}
+      <Card className="border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50 to-yellow-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-800">
+            <Bell className="h-5 w-5" />
+            Important Alerts
+          </CardTitle>
+          <CardDescription>Critical notifications about your device and care</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {/* Battery Alert */}
+            <div className="flex items-center gap-4 rounded-lg border border-orange-200 bg-white/50 p-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600">
+                <Battery className="h-4 w-4" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium text-gray-900">Battery Recharge Reminder</p>
+                <p className="text-sm text-gray-600">
+                  Your device will need recharging in approximately 7 days.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" className="text-xs">Dismiss</Button>
+            </div>
+            {/* Appointment Alert */}
+            <div className="flex items-center gap-4 rounded-lg border border-green-200 bg-white/50 p-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <Calendar className="h-4 w-4" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium text-gray-900">Upcoming Appointment</p>
+                <p className="text-sm text-gray-600">
+                  You have a follow-up appointment scheduled for June 28, 2025.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" className="text-xs">View</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Summary Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Device Type */}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Device Type</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{device.type}</div>
-            <p className="text-xs text-muted-foreground">{device.model}</p>
+          <CardContent className="flex-1">
+            <div className="text-2xl font-bold">{deviceType}</div>
+            <p className="text-xs text-muted-foreground">{deviceModel}</p>
           </CardContent>
         </Card>
 
-        {/* Battery Status (placeholder until you store it) */}
-        <Card>
+        {/* Battery Status */}
+        <Card className="flex flex-col">
           <CardHeader className="flex items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Battery Status</CardTitle>
             <Battery className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">85%</div>
+          <CardContent className="flex-1">
+            <div className="text-2xl font-bold">{batteryLevel}</div>
             <p className="text-xs text-muted-foreground">Estimated 7 days until recharge</p>
           </CardContent>
         </Card>
 
-        {/* Next Checkup (placeholder—consider adding follow_up_schedule to therapy/patient) */}
-        <Card>
+        {/* Next Checkup */}
+        <Card className="flex flex-col">
           <CardHeader className="flex items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Next Checkup</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">June 28</div>
-            <p className="text-xs text-muted-foreground">In 3 weeks</p>
+          <CardContent className="flex-1">
+            <div className="text-2xl font-bold">{nextCheckup}</div>
+            <p className="text-xs text-muted-foreground">{checkupTimeframe}</p>
           </CardContent>
         </Card>
 
         {/* Device Age */}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Device Age</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             <div className="text-2xl font-bold">{ageRounded} yrs</div>
             <p className="text-xs text-muted-foreground">Implanted {implantDate.toLocaleDateString()}</p>
           </CardContent>
@@ -148,104 +198,87 @@ export default function DashboardHome() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Device Care */}
-              <Card>
+              <Card className="flex flex-col">
                 <CardHeader>
                   <CardTitle>Device Care</CardTitle>
                   <CardDescription>Maintenance and care instructions</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                   <p>
                     Learn how to properly care for your {device.type} ({device.model}).
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Link to="/device-care">
+                  <Link to="/dashboard/device-care">
                     <Button>View Details</Button>
                   </Link>
                 </CardFooter>
               </Card>
 
               {/* Recharging Guide */}
-              <Card>
+              <Card className="flex flex-col">
                 <CardHeader>
                   <CardTitle>Recharging Guide</CardTitle>
                   <CardDescription>How and when to recharge</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                   <p>
                     Step-by-step instructions on recharging your {device.type}.
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Link to="/recharging-guide">
+                  <Link to="/dashboard/recharging">
                     <Button>View Details</Button>
                   </Link>
                 </CardFooter>
               </Card>
 
               {/* Treatment Info */}
-              <Card>
+              <Card className="flex flex-col">
                 <CardHeader>
                   <CardTitle>Treatment Information</CardTitle>
                   <CardDescription>{therapy.name}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                   <p>{therapy.treatment_info}</p>
                 </CardContent>
                 <CardFooter>
-                  <Link to="/treatment-information">
+                  <Link to="/dashboard/treatment">
                     <Button>View Details</Button>
                   </Link>
                 </CardFooter>
               </Card>
-            </div>
-          </TabsContent>
 
-          {/* Alerts Tab */}
-          <TabsContent value="alerts" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Important Alerts</CardTitle>
-                <CardDescription>Notifications about your device</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* You can dynamically fetch patient.alerts once stored */}
-                  <div className="flex items-center gap-4 rounded-lg border p-4">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600">
-                      <Battery className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium">Battery Recharge Reminder</p>
-                      <p className="text-sm text-muted-foreground">
-                        Your device will need recharging in approximately 7 days.
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">Dismiss</Button>
-                  </div>
-                  <div className="flex items-center gap-4 rounded-lg border p-4">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-                      <Calendar className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium">Upcoming Appointment</p>
-                      <p className="text-sm text-muted-foreground">
-                        You have a follow-up appointment scheduled for June 28, 2025.
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">View</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              {/* AI Assistant */}
+              <Card className="flex flex-col border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-blue-600" />
+                    AI Assistant
+                  </CardTitle>
+                  <CardDescription>Chat with MediMind AI</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <p>
+                    Get instant answers about your {deviceType}, care instructions, and treatment guidance.
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Link to="/dashboard/chatbot">
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                      Start Chat
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Activity Tab */}

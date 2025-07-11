@@ -49,19 +49,19 @@ export default function RechargingGuide() {
   }, [patient]);
 
   if (patientLoading || loading) {
-    return <p className="p-6">Loading…</p>;
+    return <div>Loading…</div>;
   }
   if (error) {
-    return <p className="p-6 text-red-500">Error: {error}</p>;
+    return <div className="text-red-500">Error: {error}</div>;
   }
   if (!device) {
-    return <p className="p-6">No device found.</p>;
+    return <div>No device found.</div>;
   }
 
   const { schedule, steps } = device.recharging_guide;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link to="/dashboard">

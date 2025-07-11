@@ -54,13 +54,13 @@ export default function TreatmentInformation() {
   }, []);
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <div>Loading...</div>;
   }
   if (error) {
-    return <div className="p-6 text-red-500">Error: {error}</div>;
+    return <div className="text-red-500">Error: {error}</div>;
   }
   if (!therapyId || !therapy) {
-    return <div className="p-6">Therapy information not found.</div>;
+    return <div>Therapy information not found.</div>;
   }
 
   const isDBS = therapyId === DBS_ID;
@@ -233,7 +233,7 @@ export default function TreatmentInformation() {
   // Render for DBS vs SCS
   if (isDBS) {
     return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link to="/dashboard">
@@ -288,7 +288,7 @@ export default function TreatmentInformation() {
 
   // Default SCS
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link to="/dashboard">
