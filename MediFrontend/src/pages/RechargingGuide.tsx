@@ -1,6 +1,8 @@
-import React from 'react';
-import { ArrowLeft, Battery, Clock, Zap, CheckCircle, AlertCircle, Timer } from 'lucide-react';
+// src/pages/RechargingGuide.tsx
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, Battery, Clock, Zap, Timer, CheckCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 import {
   Card,
   CardHeader,
@@ -10,7 +12,54 @@ import {
 } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 
+import { api } from '../services/api';
+import { useCurrentPatient } from '../hooks/useCurrentPatient';
+
+interface RechargingStep {
+  step: number;
+  title: string;
+  description: string;
+}
+interface RechargingGuideData {
+  schedule: string;
+  steps: RechargingStep[];
+}
+
+interface DeviceInfo {
+  _id: string;
+  name: string;
+  recharging_guide: RechargingGuideData;
+  // you can extend with duration, current_status, etc.
+}
+
 export default function RechargingGuide() {
+  const { patient, loading: patientLoading } = useCurrentPatient();
+  const [device, setDevice] = useState<DeviceInfo | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!patient) return;
+    setLoading(true);
+    api
+      .get<DeviceInfo>(`/devices/${patient.device_id}`)
+      .then(res => setDevice(res.data))
+      .catch(err => setError(err.message || 'Failed to load device'))
+      .finally(() => setLoading(false));
+  }, [patient]);
+
+  if (patientLoading || loading) {
+    return <p className="p-6">Loading…</p>;
+  }
+  if (error) {
+    return <p className="p-6 text-red-500">Error: {error}</p>;
+  }
+  if (!device) {
+    return <p className="p-6">No device found.</p>;
+  }
+
+  const { schedule, steps } = device.recharging_guide;
+
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
@@ -22,8 +71,8 @@ export default function RechargingGuide() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Recharging Guide</h1>
-          <p className="text-muted-foreground">Complete guide for recharging your spinal cord stimulator</p>
+          <h1 className="text-3xl font-bold">{device.name} Recharging Guide</h1>
+          <p className="text-muted-foreground">Complete guide for recharging your device</p>
         </div>
       </div>
 
@@ -37,10 +86,14 @@ export default function RechargingGuide() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Weekly</div>
-            <p className="text-xs text-muted-foreground">Every 7 days or when below 20%</p>
+            <div className="text-2xl font-bold">{schedule}</div>
+            <p className="text-xs text-muted-foreground">
+              Based on your device’s recommended schedule
+            </p>
           </CardContent>
         </Card>
+
+        {/* Placeholder: you can extend your schema to include duration/current_status */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -49,10 +102,11 @@ export default function RechargingGuide() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2-4 hours</div>
-            <p className="text-xs text-muted-foreground">For full charge cycle</p>
+            <div className="text-2xl font-bold">—</div>
+            <p className="text-xs text-muted-foreground">Not configured</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -61,8 +115,8 @@ export default function RechargingGuide() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">85%</div>
-            <p className="text-xs text-muted-foreground">7 days until next charge</p>
+            <div className="text-2xl font-bold">—</div>
+            <p className="text-xs text-muted-foreground">Not available</p>
           </CardContent>
         </Card>
       </div>
@@ -74,69 +128,25 @@ export default function RechargingGuide() {
             <Zap className="h-5 w-5" />
             Step-by-Step Recharging Process
           </CardTitle>
-          <CardDescription>Follow these steps for safe and effective charging</CardDescription>
+          <CardDescription>
+            Follow these steps for safe and effective charging
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
-                1
+            {steps.map((step) => (
+              <div key={step.step} className="flex gap-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
+                  {step.step}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium">{step.title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h4 className="font-medium">Prepare the Charging Equipment</h4>
-                <p className="text-sm text-muted-foreground mt-1">Ensure your charging paddle and power supply are clean and undamaged. Check all connections.</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
-                2
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium">Position the Charging Paddle</h4>
-                <p className="text-sm text-muted-foreground mt-1">Place the charging paddle directly over your implanted device. You should feel a slight magnetic pull when positioned correctly.</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
-                3
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium">Secure with Belt</h4>
-                <p className="text-sm text-muted-foreground mt-1">Use the provided belt to hold the paddle in place. Ensure it's snug but comfortable.</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
-                4
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium">Start Charging Session</h4>
-                <p className="text-sm text-muted-foreground mt-1">Press the power button on the charger. The LED should show a steady light indicating active charging.</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
-                5
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium">Monitor Progress</h4>
-                <p className="text-sm text-muted-foreground mt-1">Check the charger display regularly. You may feel a slight warming sensation, which is normal.</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600 font-semibold text-sm">
-                6
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium">Charging Complete</h4>
-                <p className="text-sm text-muted-foreground mt-1">The LED will change to green or display "100%" when fully charged. Remove the paddle and store equipment safely.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -249,4 +259,4 @@ export default function RechargingGuide() {
       </Card>
     </div>
   );
-} 
+}
