@@ -2,9 +2,19 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import auth, devices, therapies, patients
+from app.routes import auth, devices, therapies, patients, chatbot
 from app.database import db
 from datetime import datetime
+
+from pathlib import Path
+
+import chromadb
+from chromadb.config import Settings
+from fastapi import FastAPI
+
+from pdfplumber import open as open_pdf
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
 
 app = FastAPI(title="MediMind API")
 
@@ -15,6 +25,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def ingest_ai_data():
+    project_root = Path(__file__).resolve().parent.parent
+    data_dir     = project_root / "ai-training" / "data"
+    chroma_dir   = project_root / ".chromadb"
+
+    # 1) Open your Chroma store (will create the folder if needed)
+    client     = chromadb.PersistentClient(path=str(chroma_dir))
+    collection = client.get_or_create_collection(
+        name="inceptive_data",
+        metadata={"source": "Inceptive Data"}
+    )
+
+    # 2) If it already has data, skip ingest entirely
+    if collection.count() > 0:
+        return
+
+    # 3) Otherwise, load & chunk text
+    text = ""
+    for pdf_path in data_dir.glob("*.pdf"):
+        with open_pdf(pdf_path) as pdf:
+            text += "\n".join(page.extract_text() or "" for page in pdf.pages) + "\n"
+    chunks = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_text(text)
+
+    # 4) Embed & add
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    vectors    = embeddings.embed_documents(chunks)
+    collection.add(
+        documents=chunks,
+        embeddings=vectors,
+        metadatas=[{"chunk_index": i} for i in range(len(chunks))],
+        ids=[f"chunk_{i}" for i in range(len(chunks))],
+    )
 
 # @app.on_event("startup")
 # async def seed_db():
@@ -83,6 +127,7 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(therapies.router)
 app.include_router(patients.router)
+app.include_router(chatbot.router)
 
 @app.get("/")
 def root():
