@@ -247,7 +247,7 @@ export default function DashboardHome() {
                   <CardDescription>{therapy.name}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
-                  <p>{therapy.treatment_info}</p>
+                  <p>Overview on how your treatment and therapy works.</p>
                 </CardContent>
                 <CardFooter>
                   <Link to="/dashboard/treatment">

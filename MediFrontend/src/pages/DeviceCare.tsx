@@ -131,7 +131,7 @@ export default function DeviceCare() {
       </Card>
 
       {/* Recharging Guide */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-blue-500" />
@@ -148,7 +148,7 @@ export default function DeviceCare() {
             ))}
           </ol>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* …and so on for FAQ or Warning Signs, pulling from device.faq if you added it */}
     </div>
